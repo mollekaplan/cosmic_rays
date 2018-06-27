@@ -7,9 +7,7 @@ Created on Wed Jun 13 10:47:02 2018
 
 Calculates the injection spectrum of secondary electrons.
 
-Outputs a plot of the spectrum and prints the values of the spectrum 
-for now, but in the future it will be integrated with electrons.py to 
-create the full electron spectrum.
+For now, outputs a plot of the spectrum and prints the values of the spectrum.
 """
 
 import numpy as np
