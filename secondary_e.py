@@ -13,7 +13,7 @@ create the full electron spectrum.
 """
 
 import numpy as np
-from pSpec import proton_spec #change to proton when done testing
+from p_spec import proton_spec #change to proton when done testing
 import matplotlib.pyplot as plt
 import functions as fun
 
