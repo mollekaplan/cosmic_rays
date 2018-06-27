@@ -11,7 +11,7 @@ for 20 (nfreq) different values of nu.
 """
 
 import numpy as np
-from eSpec import electron_spec
+from e_spec import electron_spec
 import matplotlib.pyplot as plt
 import functions as fun
 from bessel import Fx
