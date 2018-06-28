@@ -5,31 +5,34 @@ Created on Thu Jun 21 13:26:44 2018
 
 @author: mollykaplan
 
-This code calculates the synchrotron emission from an input electron
-spectrum. Outputs plots of the emissivity versus frequency (nu) 
+Calculates the synchrotron emission from an input electron
+spectrum. 
+
+Function synch outputs an array of synchrotron emissivity values. 
+Takes frequencies, density, magnetic field magnitude, energy density 
+and the timescale as inputs.
+
+In testing section, can output plots of the emissivity versus frequency (nu) 
 for 20 (nfreq) different values of nu.
 """
 
 import numpy as np
-from e_spec import electron_spec
+#from e_spec import electron_spec
+from electrons import electron_spec
 import matplotlib.pyplot as plt
 import functions as fun
 from bessel import Fx
-#from bessel import mod_bessel 
-
-vec_e=electron_spec()[0]  #array of energy values used inelectron spectrum
-NEe=electron_spec()[1]  #array of electron spectrum values
+#from bessel import mod_bessel  
 
 x=Fx()[0]  #array of x values used for bessel integral
 F=Fx()[1]  #array of bessel integral values
 
-mag=1e3 #B-field in microGauss
 
-
+##############################################################################
 #function which calulates the integrand of the energy integration, which 
 #includes the electron spectrum, the bessel integral, and the integral 
 #over pitch angle (theta)
-def integrand(E,nu):
+def integrand(E,nu,density,mag,Uph,tau_0,vec_e,NEe):
     Nspec_e=fun.log_interp(vec_e,NEe,E) #electron spectrum at energy E
     
     x0=0.23815917*nu/mag  #nu/nu_c * gamma^2 * sin(theta)
@@ -51,11 +54,12 @@ def integrand(E,nu):
     
     return 1.86558e-6*mag*Nspec_e*thint
 
-    
-def emissivity(nu):    
+  
+#Calculates the emissivity by integrating over energy values
+def emissivity(nu,density,mag,Uph,tau_0,vec_e,NEe):    
     x0=0.23815917*nu/mag
     minE=5.1099891e-4*(np.sqrt(.01*x0)-1.) #ensures sin(theta)<=1 for nu/nu_c<=100
-
+    
     #values where the integral is split up
     endpts=[1e-2,3e-2,4e-2,5e-2,6e-2,6.5e-2,7.5e-2,8.5e-2,1e-1,\
             1.2e-1,1.3e-1,1.5e-1,1.7e-1,1.9e-1,2.1e-1,2.5e-1,3e-1,\
@@ -63,38 +67,57 @@ def emissivity(nu):
             8.5e-1,1e0,1.3e0,1.7e0,2.2e0,3e0,5e0,8e0,1e1,1e2] 
      
     #integration over E
-    return fun.segmented_int(lambda E: integrand(E,nu),\
+    return fun.segmented_int(lambda E: \
+            integrand(E,nu,density,mag,Uph,tau_0,vec_e,NEe),\
             endpts,minE,Emax)
 
-##############################################################################
-#creating array of frequency values
-Emin=1e-4
-Emax=1e6
-numin=1e8
-numax=10**(11.18)
-nfreq=20
-nu=np.geomspace(numin,numax,nfreq)
 
-#creating vector of emissivity values and printing out nu and ev(nu)
-ev=[]
-for elt in nu: 
-    print(str(elt)+"--"+str(emissivity(elt)))
-    ev.append(emissivity(elt))
+#Outputs synchrotron emissivity values at the frequency values given by the
+#array "nu"
+def synch(nu,density,mag,Uph,tau_0):
+    pts=electron_spec(density,mag,Uph,tau_0)
+    vec_e=pts[0]  #array of energy values used in electron spectrum
+    NEe=pts[1]  #array of electron spectrum values
+    
+    synch_ev=[]
+    for elt in nu: synch_ev.append(emissivity(elt,density,mag,Uph,tau_0,vec_e,NEe))
+    return synch_ev
 
-##plotting the synchrotron spectrum
-f1 = plt.figure(figsize=(11,6))
-ax1 = f1.add_subplot(111)
-plt.plot(nu,ev(nu),numin,numax)
-ax1.set_xscale('log')
-ax1.set_yscale('log')
-plt.ylim(2e-7,6.3e-5)
 
-#printing out values of emissivity and minimum energy at frequency nu_val
-nu_val=1e8
-print(emissivity(nu_val))
-x0=0.23815917*nu_val/mag
-minE=5.1099891e-4*(np.sqrt(.01*x0)-1.)
-print(minE)
+##Testing the synchrotron emission
+###############################################################################
+##creating array of frequency values
+#Emin=1e-4
+#Emax=1e6
+#numin=1e8
+#numax=10**(11.18)
+#nfreq=20
+#nu=np.geomspace(numin,numax,nfreq)
+#
+#
+###Inputs##
+#mag=1.5e2 #B-field in microGauss
+#density=1e3
+#Uph=2.7e2
+#tau_0=1e-1
+#
+#
+###plotting the synchrotron spectrum
+#f1 = plt.figure(figsize=(11,6))
+#ax1 = f1.add_subplot(111)
+#plt.plot(nu,synch(nu,density,mag,Uph,tau_0))
+#ax1.set_xscale('log')
+#ax1.set_yscale('log')
+##plt.ylim(2e-7,6.3e-5)
+#
+##printing out values of emissivity and minimum energy at frequency nu_val
+##nu_val=1e8
+##print(emissivity(nu_val))
+##x0=0.23815917*nu_val/mag
+##minE=5.1099891e-4*(np.sqrt(.01*x0)-1.)
+##print(minE)
+
+
 
 
 

@@ -5,13 +5,20 @@ Created on Wed Jun 13 10:47:02 2018
 
 @author: mollykaplan
 
-Calculates the injection spectrum of secondary electrons.
+Calculates the injection spectrum of secondary electrons from an input
+proton spectrum
 
-For now, outputs a plot of the spectrum and prints the values of the spectrum.
+Function secondary_e_spec outputs a tuple with the array of energy values 
+in the first index and an array of the values of the secondary electron
+spectrum at those energies in the second index. Takes energy values,
+density and the timescale as inputs.
+
+In testing section, outputs a plot of the spectrum and prints the values 
+of the spectrum.
 """
 
 import numpy as np
-from p_spec import proton_spec #change to proton when done testing
+from protons import proton_spec #change to proton when done testing
 import matplotlib.pyplot as plt
 import functions as fun
 
@@ -20,12 +27,9 @@ re=2.82e-13  #electron radius [cm]
 mp=.9383   #proton mass [GeV/c^2]
 me=5.1099891e-4   #electron mass [GeV/c^2]
 s=me/mp   # m_e/(A_i*m_p)
-density=1e3  # [g cm^(-3)]  (I think)
 c=9.4542e23   #cm Myr^(-1)
 
-vec_p=proton_spec()[0]  #array of energy values used in proton spectrum
-NEp=proton_spec()[1]   #array of proton spectrum values
-
+Epmax=1e6
 
 #function that finds the knock-on electron cross section. Ee is
 #electron energy, and Ep s proton eneergy
@@ -40,7 +44,7 @@ def KO_xsec(Ee,Ep):
 
 #function that returns the injection spectrum for secondary 
 #electrons at some Ee.
-def KO_source(Ee):
+def KO_source(Ee,density,vec_p,NEp):
     gamma_e=Ee/5.1099891e-4 + 1.
     E1p=mp*(.5*s*(gamma_e-1.)+\
         np.sqrt(1.+.5*(1.+s*s)*(gamma_e-1.)+\
@@ -57,39 +61,55 @@ def KO_source(Ee):
         return 1616.5390*density*fun.segmented_int(integrand,endpts,E1p,Epmax)
     else: #large enough E1p doesn't need segmented method
         return 1616.5390*density*fun.fint(integrand,E1p,Epmax)
-
-##############################################################################
-#creating energy array with points equally spaced in log space and
-#deleting first and last point
-Emin=1e-4
-Emax=10**(3.8)
-Epmax=1e6
-npts=100
-x=np.delete(np.delete(np.geomspace(Emin,Emax,npts),0),-1) 
-
-
-#creating array of injection spectrum values
-vec_KO=[]
-vec_x=[]
-for elt in x: 
-    gamma_e=elt/5.1099891e-4 + 1.
-    E1p=mp*(.5*s*(gamma_e-1.)+\
-        np.sqrt(1.+.5*(1.+s*s)*(gamma_e-1.)+\
-        .25*s*s*(gamma_e-1.)**(2.))-1.)
-    #ensuring the upper limit is larger than the lower limit
-    if Epmax>E1p: 
-        vec_KO.append(KO_source(elt))
-        vec_x.append(elt)
-        
-
-#Printing energy and knock-on spectrum values
-print("x vals: "+str(vec_x))
-print("K0 vals: "+str(vec_KO))
     
+    
+#Outputs secondary electron spectrum values at the frequency values 
+#given by the array "x"
+def secondary_e_spec(x,density,tau_0):
+    pts=proton_spec(density,tau_0)
+    vec_p=pts[0]  #array of energy values used in electron spectrum
+    NEp=pts[1]  #array of electron spectrum values
+    
+    vec_KO=[]
+    vec_x=[]
+    for elt in x: 
+        gamma_e=elt/5.1099891e-4 + 1.
+        E1p=mp*(.5*s*(gamma_e-1.)+\
+                np.sqrt(1.+.5*(1.+s*s)*(gamma_e-1.)+\
+                .25*s*s*(gamma_e-1.)**(2.))-1.)
+        #ensuring the upper limit is larger than the lower limit
+        if Epmax>E1p: 
+            vec_KO.append(KO_source(elt,density,vec_p,NEp))
+            vec_x.append(elt)
+        
+    return (vec_x,vec_KO)
 
-#plotting the injection spectrum
-f1 = plt.figure(figsize=(11,6))
-ax1 = f1.add_subplot(111)
-plt.plot(vec_x,vec_KO,Emin,Emax)
-ax1.set_xscale('log')
-ax1.set_yscale('log')
+
+##Testing the secondary electorn spectrum
+###############################################################################
+##creating energy array with points equally spaced in log space and
+##deleting first and last point
+#Emin=1e-4
+#Emax=10**(3.8)
+#npts=100
+#x=np.delete(np.delete(np.geomspace(Emin,Emax,npts),0),-1) 
+#
+#density=1e3
+#tau_0=1e-1
+#
+##creating array of injection spectrum values
+#spec=secondary_e_spec(x,density,tau_0)
+#vec_KO=spec[1]
+#vec_x=spec[0]
+#        
+##Printing energy and knock-on spectrum values
+#print("x vals: "+str(vec_x))
+#print("K0 vals: "+str(vec_KO))
+#    
+#
+##plotting the injection spectrum
+#f1 = plt.figure(figsize=(11,6))
+#ax1 = f1.add_subplot(111)
+#plt.plot(vec_x,vec_KO)
+#ax1.set_xscale('log')
+#ax1.set_yscale('log')
