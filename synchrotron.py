@@ -32,7 +32,7 @@ F=Fx()[1]  #array of bessel integral values
 #function which calulates the integrand of the energy integration, which 
 #includes the electron spectrum, the bessel integral, and the integral 
 #over pitch angle (theta)
-def integrand(E,nu,density,mag,Uph,tau_0,vec_e,NEe):
+def integrand(E,nu,mag,vec_e,NEe):
     Nspec_e=fun.log_interp(vec_e,NEe,E) #electron spectrum at energy E
     
     x0=0.23815917*nu/mag  #nu/nu_c * gamma^2 * sin(theta)
@@ -56,7 +56,7 @@ def integrand(E,nu,density,mag,Uph,tau_0,vec_e,NEe):
 
   
 #Calculates the emissivity by integrating over energy values
-def emissivity(nu,density,mag,Uph,tau_0,vec_e,NEe):    
+def emissivity(nu,mag,vec_e,NEe):    
     x0=0.23815917*nu/mag
     minE=5.1099891e-4*(np.sqrt(.01*x0)-1.) #ensures sin(theta)<=1 for nu/nu_c<=100
     
@@ -68,7 +68,7 @@ def emissivity(nu,density,mag,Uph,tau_0,vec_e,NEe):
      
     #integration over E
     return fun.segmented_int(lambda E: \
-            integrand(E,nu,density,mag,Uph,tau_0,vec_e,NEe),\
+            integrand(E,nu,mag,vec_e,NEe),\
             endpts,minE,Emax)
 
 
@@ -80,7 +80,7 @@ def synch(nu,density,mag,Uph,tau_0):
     NEe=pts[1]  #array of electron spectrum values
     
     synch_ev=[]
-    for elt in nu: synch_ev.append(emissivity(elt,density,mag,Uph,tau_0,vec_e,NEe))
+    for elt in nu: synch_ev.append(emissivity(elt,mag,vec_e,NEe))
     return synch_ev
 
 
