@@ -5,76 +5,82 @@ Created on Thu Jun  7 14:14:31 2018
 
 @author: mollykaplan
 
-Functions needed to find the final proton and electron spectra.
- 
+Functions needed to find the final proton and lepton spectra.
 """
 import numpy as np
 import scipy.integrate as integrate
 
 
-#the integration function. f is the integrand, Elow is the
-#lower limit, Ehi is the upper limit, expb is the exponent on E
-#in b(E), and expt is the exponent on E in tau(E)    
+"""
+An integration function used throughout the analysis. f is the 
+integrand, Elow is the lower limit, and Ehi is the upper limit. 
+"""
 def fint(f,Elow,Ehi): 
     #add "points" so quad runs over any range in [10^-4,10^5.7]
-    return integrate.quad(f,Elow,Ehi,\
-           points=[1e-3,1e-2,1e-1,0.28172800,1e0,1e1,10**(1.5),1e2,10**(2.5),\
+    return integrate.quad(f,Elow,Ehi,
+           points=[1e-3,1e-2,1e-1,0.28172800,1e0,1e1,10**(1.5),1e2,10**(2.5),
            1e3,10**(3.5),1e4,10**(4.5),1e5,10**(5.4)])[0]
     
-    
-#green function, where E is the lower bound and Ep is the upper bound
+"""
+Green function as given by Domingo-Santamaria et. al. 2008, Eq. 2.
+E is the lower bound and Ep (E' in the paper) is the upper bound.
+f is the integrand, to be input later.
+"""
 def green(f,b,E,Ep):
     int_val= fint(f,E,Ep)
     return 1./(b(E))*np.exp(-int_val)
 
-
-#injecection spectrum. K is the constant and expo is the exponent on Ep 
+"""
+Power law injection spectrum. K is the constant and Ep is E', 
+to match E' in the Green function. 
+"""
 def inSpec(K,s,Ep):
-    return K*Ep**(s)
+    return K*Ep**(-s)
 
-
-#the number spectrum, with E as the lower limit of integration and
-#Emax as the upperlimit
+"""
+The number spectrum as given by Domingo-Santamaria et. al. 2008, 
+Eq. 3. E is the lower limit of integration and Emax is the upper 
+limit.
+"""
 def Nspec(f,b,E,Emax,K,s):
     integrand=lambda Ep: inSpec(K,s,Ep)*green(f,b,E,Ep)
     return fint(integrand,E,Emax)
 
+"""
+Injection spectrum for electrons, which includes the secondary 
+electron spectrum for knock-ons. Will include secondary spectrum 
+from pion decay once that is ready. K is the constant and Ep is E', 
+to match E' in the Green function. 
+"""
+def inSpec_e(K,s,Ep,scndy_spec):
+    #calculate ratio of leptons to protons, given by Paglione et. al.
+    #2012 Eq. 2
+    N_ratio=(5.1099891e-4/.9383)**(.5*(s-1.))
+    return K*(Ep**(-s) + N_ratio*10.**scndy_spec(np.log10(Ep)))
 
-#function to find closest point to some value in an array. returns index.
+"""
+The number spectrum for electrons, with E as the lower limit of 
+integration and Emax as the upper limit.
+"""
+def Nspec_e(f,b,E,Emax,K,s,scndy_spec):
+    integrand=lambda Ep: inSpec_e(K,s,Ep,scndy_spec)*green(f,b,E,Ep)
+    return fint(integrand,E,Emax)
+
+"""
+Function to find closest point to some value in an array. 
+Returns index.
+"""
 def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return idx
 
-
-#function to find y(val) using log interpolation on y(x), where x and
-#y are both arrays.
-def log_interp(x,y,val,base10=False):
-    i=find_nearest(x,val) #index of array value closest to val
-    if x[i]>val and i>0: i-=1  #make sure value is in between x[i] and x[i+1]
-    if i==len(x)-1: i-=1  #make sure x[i+1] exists
-    
-    if not base10:
-        slope=(np.log(y[i])-np.log(y[i+1]))/ \
-              (np.log(x[i])-np.log(x[i+1]))      
-        intercept=np.log(y[i])-slope*np.log(x[i])
-    
-        #find point on line at val, then exponentiate to return to linear space
-        return np.exp(slope*np.log(val)+intercept)
-    
-    else:
-        slope=(np.log10(y[i])-np.log10(y[i+1]))/ \
-              (np.log10(x[i])-np.log10(x[i+1]))      
-        intercept=np.log10(y[i])-slope*np.log10(x[i])
-    
-        #find point on line at val, then exponentiate to return to linear space
-        return 10**(slope*np.log10(val)+intercept)
-
-
-#Integration function for more complex integrands, usually ones which
-#require interpolation. f is the integrand, endpts is an array of values
-#where the integration is broken up, Elow is the lower limit of integration, 
-#and Ehi is the upper limit.
+"""
+Integration function for more complex integrands, usually ones which
+require interpolation. f is the integrand, endpts is an array of 
+values where the integration is broken up, Elow is the lower limit 
+of integration, and Ehi is the upper limit.
+"""
 def segmented_int(f,endpts,Elow,Ehi):
     arr=[] #array which will hold integral values
     
