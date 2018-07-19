@@ -56,7 +56,7 @@ def inSpec_e(K,s,Ep,scndy_spec):
     #calculate ratio of leptons to protons, given by Paglione et. al.
     #2012 Eq. 2
     N_ratio=(5.1099891e-4/.9383)**(.5*(s-1.))
-    return K*(Ep**(-s) + N_ratio*10.**scndy_spec(np.log10(Ep)))
+    return K*(N_ratio*Ep**(-s) + 10.**scndy_spec(np.log10(Ep)))
 
 """
 The number spectrum for electrons, with E as the lower limit of 
