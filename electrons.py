@@ -89,7 +89,7 @@ def electron_spec(density,mag,Uph,tau_0):
     
     #creating electron energy spectrum for secondary contributions
     Emin_s=1e-4
-    Emax_s=1e6
+    Emax_s=1e5
     npts_s=100
     x_s=np.delete(np.delete(np.geomspace(Emin_s,Emax_s,npts_s),0),-1) 
 
