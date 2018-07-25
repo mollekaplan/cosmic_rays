@@ -13,13 +13,18 @@ Function electron_spec outputs a tuple with the array of energy values
 in the first index and an array of the values of the proton spectrum at 
 those energies in the second index. Takes density, magnetic field magnitude, 
 energy density and the timescale as inputs.
+
+Under testing section, can output a plot of the spectrum versus energy.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import functions as fun
 from scipy.interpolate import interp1d
 from ic import b_ic
-from secondary_e import secondary_e_spec
+from ko_sec_e import ko_sec
+from pion_sec_e import pion_sec
+from protons import proton_spec
 
 """
 The energy loss rate, b, for the electron spectrum; a slightly 
@@ -63,14 +68,18 @@ the magnetic field magnitude, the photon energy density, and
 the escape timescale.
 """
 def electron_spec(density,mag,Uph,tau_0):
-    #electron enrgies for creating the electron spectrum array
+    pro=proton_spec(density,tau_0)
+    Ep=pro[0]
+    NEp=pro[1]
+    
+    #electron energies for creating the electron spectrum array
     Emin=1e-4
     Emax=1e6
     npts=100
     #equally spaced in log space, deleting first and last point
     x=np.delete(np.delete(np.geomspace(Emin,Emax,npts),0),-1)
     
-    #creating electron energy spectrum for IC contributions
+    ##### creating electron IC energy spectrum ######
     Emin_ic=1e-4
     Emax_ic=1e6
     npts_ic=100
@@ -87,32 +96,74 @@ def electron_spec(density,mag,Uph,tau_0):
                   bounds_error=False, 
                   kind='cubic')
     
-    #creating electron energy spectrum for secondary contributions
+    ####creating spectrum for secondary contributions #####
     Emin_s=1e-4
     Emax_s=1e5
     npts_s=100
-    x_s=np.delete(np.delete(np.geomspace(Emin_s,Emax_s,npts_s),0),-1) 
+    x_s0=np.geomspace(Emin_s,Emax_s,npts_s)
+    x_s=np.delete(np.delete(x_s0,0),-1) 
 
-    #finding the secondary lepton spectrum
-    s_E=secondary_e_spec(x_s,density,tau_0)[0]
-    s_spec=secondary_e_spec(x_s,density,tau_0)[1]
-    l_s_E=[]
-    for elt in s_E: l_s_E.append(np.log10(elt))
-    l_s_spec=[]
-    for elt in s_spec: l_s_spec.append(np.log10(elt))
-    scndy_spec=interp1d(l_s_E,l_s_spec, 
-                  fill_value=-np.Inf, 
-                  bounds_error=False, 
-                  kind='cubic')
+    ko_spec=ko_sec(x_s,Ep,NEp,density)[1] #knock-on
+    pi_spec=pion_sec(x_s,npts_s-2,Ep,NEp,density)[1] #charged pion decay
+    
+    l_sec_E=np.zeros(len(x_s))
+    for i in range(len(x_s)): l_sec_E[i]=np.log10(x_s[i])
+    l_sec_spec=np.zeros(len(ko_spec))
+    for i in range(len(ko_spec)):
+        l_sec_spec[i]=np.log10(ko_spec[i]+pi_spec[i])
+    
+    sec_spec=interp1d(l_sec_E, l_sec_spec, 
+                              fill_value=-np.Inf, 
+                              bounds_error=False, 
+                              kind='cubic')
     
     #creating an electron spectrum array
     espec=[]
     for elt in x: espec.append(fun.Nspec_e(lambda E: \
               func(E,density,mag,Uph,tau_0,ic_interp),
               lambda E: b(E,density,mag,Uph,ic_interp),
-              elt,Emax,1.,2.2,scndy_spec))
+              elt,Emax,1.,2.2,sec_spec))
     
     return (x,espec)
+
+
+###Testing the number spectrum
+##############################################################################
+#density=1e3
+#mag=np.linspace(1e2,1e3,100)
+#Uph=2e2
+#tau_0=1e-1
+#E_val=1.
+#
+#vec_Nspec=[]
+#for elt in mag: vec_Nspec.append(electron_scaling(E_val,density,elt,Uph,tau_0))
+#print(vec_Nspec) #print out spectrum
+#
+##plotting the number spectrum
+#f1 = plt.figure(figsize=(11,6))
+#ax1 = f1.add_subplot(111)
+#plt.plot(mag,vec_Nspec)
+#ax1.set_xscale('log')
+#ax1.set_yscale('log')
+    
+
+#density=1e2
+#mag=1e3
+#Uph=2e2
+#tau_0=1e-1
+#
+#x=electron_spec(density,mag,Uph,tau_0)[0]
+#vec_Nspec=electron_spec(density,mag,Uph,tau_0)[1]
+#print(vec_Nspec) #print out spectrum
+#
+##plotting the number spectrum
+#f1 = plt.figure(figsize=(11,6))
+#ax1 = f1.add_subplot(111)
+#plt.plot(x,vec_Nspec)
+#ax1.set_xscale('log')
+#ax1.set_yscale('log')
+    
+
 
 
 
