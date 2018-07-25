@@ -18,7 +18,6 @@ of the spectrum.
 """
 
 import numpy as np 
-import matplotlib.pyplot as plt
 import functions as fun
 from scipy.interpolate import interp1d
 
@@ -76,33 +75,3 @@ def ko_sec(x,vec_p,NEp,density):
     for i in range(len(x)): vec_KO[i]=ko_source(x[i],density,interp_func)
         
     return (x,vec_KO)
-
-
-#Testing the secondary electron spectrum
-##############################################################################
-##creating energy array with points equally spaced in log space and
-##deleting first and last point
-#Emin=1e-4
-#Emax=1e5
-#npts=100
-#x=np.delete(np.delete(np.geomspace(Emin,Emax,npts),0),-1) 
-#
-#density=1e3
-#tau_0=1e-1
-#
-##creating array of injection spectrum values
-#spec=secondary_e_spec(x,density,tau_0)
-#vec_KO=spec[1]
-#vec_x=spec[0]
-#        
-##Printing energy and knock-on spectrum values
-#print("x vals: "+str(vec_x))
-#print("K0 vals: "+str(vec_KO))
-#    
-#
-##plotting the injection spectrum
-#f1 = plt.figure(figsize=(11,6))
-#ax1 = f1.add_subplot(111)
-#plt.plot(vec_x,vec_KO)
-#ax1.set_xscale('log')
-#ax1.set_yscale('log')
