@@ -18,7 +18,6 @@ Under testing section, can output a plot of the spectrum versus energy.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import functions as fun
 from scipy.interpolate import interp1d
 from ic import b_ic
@@ -125,45 +124,3 @@ def electron_spec(density,mag,Uph,tau_0):
               elt,Emax,1.,2.2,sec_spec))
     
     return (x,espec)
-
-
-###Testing the number spectrum
-##############################################################################
-#density=1e3
-#mag=np.linspace(1e2,1e3,100)
-#Uph=2e2
-#tau_0=1e-1
-#E_val=1.
-#
-#vec_Nspec=[]
-#for elt in mag: vec_Nspec.append(electron_scaling(E_val,density,elt,Uph,tau_0))
-#print(vec_Nspec) #print out spectrum
-#
-##plotting the number spectrum
-#f1 = plt.figure(figsize=(11,6))
-#ax1 = f1.add_subplot(111)
-#plt.plot(mag,vec_Nspec)
-#ax1.set_xscale('log')
-#ax1.set_yscale('log')
-    
-
-#density=1e2
-#mag=1e3
-#Uph=2e2
-#tau_0=1e-1
-#
-#x=electron_spec(density,mag,Uph,tau_0)[0]
-#vec_Nspec=electron_spec(density,mag,Uph,tau_0)[1]
-#print(vec_Nspec) #print out spectrum
-#
-##plotting the number spectrum
-#f1 = plt.figure(figsize=(11,6))
-#ax1 = f1.add_subplot(111)
-#plt.plot(x,vec_Nspec)
-#ax1.set_xscale('log')
-#ax1.set_yscale('log')
-    
-
-
-
-
