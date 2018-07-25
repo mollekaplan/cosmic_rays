@@ -12,10 +12,13 @@ Function secondary_e_spec outputs a tuple with the array of energy values
 in the first index and an array of the values of the secondary electron
 spectrum at those energies in the second index. Takes energy values,
 density and the timescale as inputs.
+
+In testing section, outputs a plot of the spectrum and prints the values 
+of the spectrum.
 """
 
-import numpy as np
-from protons import proton_spec 
+import numpy as np 
+import matplotlib.pyplot as plt
 import functions as fun
 from scipy.interpolate import interp1d
 
@@ -30,7 +33,7 @@ Function that finds the knock-on electron cross section. Ee is
 electron energy, and Ep is proton energy. Slightly modified version
 of Torres 2004 Eq. 4.
 """
-def KO_xsec(Ee,Ep):
+def ko_xsec(Ee,Ep):
     gamma_e=Ee/5.1099891e-4 + 1.
     gamma_p=Ep/0.9383 + 1.
     return 1./np.sqrt(1.-gamma_p**(-2.)) \
@@ -43,13 +46,13 @@ Function that returns the injection spectrum for secondary
 electrons at some Ee, as given by Eq. 5 from Torres 2004. 
 interp_func is an interpolation over the proton spectrum. 
 """
-def KO_source(Ee,density,interp_func):
+def ko_source(Ee,density,interp_func):
     gamma_e=Ee/5.1099891e-4 + 1.
     E1p=mp*(.5*s*(gamma_e-1.)+\
         np.sqrt(1.+.5*(1.+s*s)*(gamma_e-1.)+\
         .25*s*s*(gamma_e-1.)**(2.))-1.)
 
-    integrand= lambda Ep: KO_xsec(Ee,Ep)*10.**interp_func(np.log10(Ep))
+    integrand= lambda Ep: ko_xsec(Ee,Ep)*10.**interp_func(np.log10(Ep))
     
     return 1616.5390*density*fun.fint(integrand,E1p,Epmax)
 
@@ -57,11 +60,7 @@ def KO_source(Ee,density,interp_func):
 Outputs a tuple with frequency values given by an array "x", and
 secondary electron spectrum values at the values in x.
 """
-def secondary_e_spec(x,density,tau_0):
-    pts=proton_spec(density,tau_0)
-    vec_p=pts[0]  #array of energy values used in electron spectrum
-    NEp=pts[1]  #array of electron spectrum values
-    
+def ko_sec(x,vec_p,NEp,density):
     #creating interpolated proton spectrum
     l_p=[]
     for elt in vec_p: l_p.append(np.log10(elt))
@@ -72,20 +71,38 @@ def secondary_e_spec(x,density,tau_0):
                          bounds_error=False, 
                          kind='cubic')
     
-    #creating arrays to hold injection spectrum data
-    vec_KO=[]
-    vec_x=[]
-    for elt in x: 
-        gamma_e=elt/5.1099891e-4 + 1.
-        #lower limit of integration
-        E1p=mp*(.5*s*(gamma_e-1.)+\
-                np.sqrt(1.+.5*(1.+s*s)*(gamma_e-1.)+\
-                .25*s*s*(gamma_e-1.)**(2.))-1.)
-        #ensuring the upper limit is larger than the lower limit, 
-        #may not be necessary.
-        if Epmax>E1p: 
-            vec_KO.append(KO_source(elt,density,interp_func))
-            vec_x.append(elt)
+    #creating array to hold injection spectrum data
+    vec_KO=np.zeros(len(x))
+    for i in range(len(x)): vec_KO[i]=ko_source(x[i],density,interp_func)
         
-    return (vec_x,vec_KO)
+    return (x,vec_KO)
 
+
+#Testing the secondary electron spectrum
+##############################################################################
+##creating energy array with points equally spaced in log space and
+##deleting first and last point
+#Emin=1e-4
+#Emax=1e5
+#npts=100
+#x=np.delete(np.delete(np.geomspace(Emin,Emax,npts),0),-1) 
+#
+#density=1e3
+#tau_0=1e-1
+#
+##creating array of injection spectrum values
+#spec=secondary_e_spec(x,density,tau_0)
+#vec_KO=spec[1]
+#vec_x=spec[0]
+#        
+##Printing energy and knock-on spectrum values
+#print("x vals: "+str(vec_x))
+#print("K0 vals: "+str(vec_KO))
+#    
+#
+##plotting the injection spectrum
+#f1 = plt.figure(figsize=(11,6))
+#ax1 = f1.add_subplot(111)
+#plt.plot(vec_x,vec_KO)
+#ax1.set_xscale('log')
+#ax1.set_yscale('log')
