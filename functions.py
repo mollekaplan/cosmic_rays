@@ -34,16 +34,16 @@ def green(f,b,E,Ep):
 Power law injection spectrum. K is the constant and Ep is E', 
 to match E' in the Green function. 
 """
-def inSpec(K,s,Ep):
-    return K*Ep**(-s)
+def inSpec_p(K,s,Ep):
+    return K*(Ep + .9383)**(-s)
 
 """
 The number spectrum as given by Domingo-Santamaria et. al. 2008, 
 Eq. 3. E is the lower limit of integration and Emax is the upper 
 limit.
 """
-def Nspec(f,b,E,Emax,K,s):
-    integrand=lambda Ep: inSpec(K,s,Ep)*green(f,b,E,Ep)
+def Nspec_p(f,b,E,Emax,K,s):
+    integrand=lambda Ep: inSpec_p(K,s,Ep)*green(f,b,E,Ep)
     return fint(integrand,E,Emax)
 
 """
@@ -52,18 +52,19 @@ electron spectrum for knock-ons. Will include secondary spectrum
 from pion decay once that is ready. K is the constant and Ep is E', 
 to match E' in the Green function. 
 """
-def inSpec_e(K,s,Ep,scndy_spec):
+def inSpec_e(K,s,Ep,sec_spec):
     #calculate ratio of leptons to protons, given by Paglione et. al.
     #2012 Eq. 2
     N_ratio=(5.1099891e-4/.9383)**(.5*(s-1.))
-    return K*(N_ratio*Ep**(-s) + 10.**scndy_spec(np.log10(Ep)))
+    return K*(N_ratio*(Ep + 5.1099891e-4)**(-s) + \
+              10.**sec_spec(np.log10(Ep + 5.1099891e-4)))
 
 """
 The number spectrum for electrons, with E as the lower limit of 
 integration and Emax as the upper limit.
 """
-def Nspec_e(f,b,E,Emax,K,s,scndy_spec):
-    integrand=lambda Ep: inSpec_e(K,s,Ep,scndy_spec)*green(f,b,E,Ep)
+def Nspec_e(f,b,E,Emax,K,s,sec_spec):
+    integrand=lambda Ep: inSpec_e(K,s,Ep,sec_spec)*green(f,b,E,Ep)
     return fint(integrand,E,Emax)
 
 """
