@@ -64,6 +64,6 @@ def proton_spec(density,tau_0):
     
     #creating a proton spectrum array
     pspec=[]
-    for elt in x: pspec.append(fun.Nspec(lambda E: func(E,density,tau_0),\
+    for elt in x: pspec.append(fun.Nspec_p(lambda E: func(E,density,tau_0),\
               lambda E: b(E,density),elt,Emax,1.,2.2))
     return (x,pspec)
