@@ -66,8 +66,8 @@ parameters of the ISM, including the ambient gas density,
 the magnetic field magnitude, the photon energy density, and
 the escape timescale.
 """
-def electron_spec(density,mag,Uph,tau_0):
-    pro=proton_spec(density,tau_0)
+def electron_spec(density,mag,Uph,tau_0,s):
+    pro=proton_spec(density,tau_0,s)
     Ep=pro[0]
     NEp=pro[1]
     
@@ -121,6 +121,6 @@ def electron_spec(density,mag,Uph,tau_0):
     for elt in x: espec.append(fun.Nspec_e(lambda E: \
               func(E,density,mag,Uph,tau_0,ic_interp),
               lambda E: b(E,density,mag,Uph,ic_interp),
-              elt,Emax,1.,2.2,sec_spec))
+              elt,Emax,1.,s,sec_spec))
     
     return (x,espec)
