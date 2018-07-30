@@ -11,10 +11,12 @@ spectrum.
 Function synch outputs an array of synchrotron emissivity values. 
 Takes frequencies, density, magnetic field magnitude, energy density 
 and the timescale as inputs.
+
+NB: May not run since electrons.py has been updated since using
+this code.
 """
 
 import numpy as np
-#from e_spec import electron_spec
 from electrons import electron_spec
 import matplotlib.pyplot as plt
 import functions as fun
@@ -77,8 +79,8 @@ def emissivity(nu,mag,vec_e,NEe):
 Outputs synchrotron emissivity values at the frequency values 
 given by the array "nu"
 """
-def synch(nu,density,mag,Uph,tau_0):
-    pts=electron_spec(density,mag,Uph,tau_0)
+def synch(nu,density,mag,Uph,tau_0,s):
+    pts=electron_spec(density,mag,Uph,tau_0,s)
     vec_e=pts[0]  #array of energy values used in electron spectrum
     NEe=pts[1]  #array of electron spectrum values
     
