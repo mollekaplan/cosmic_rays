@@ -54,7 +54,7 @@ Outputs proton spectrum value array. Takes as input certain
 parameters of the ISM, including the ambient gas density and
 the escape timescale.
 """
-def proton_spec(density,tau_0):
+def proton_spec(density,tau_0,s):
     #proton energies for creating the proton spectrum array
     Emin=1e-4
     Emax=1e6
@@ -65,5 +65,5 @@ def proton_spec(density,tau_0):
     #creating a proton spectrum array
     pspec=[]
     for elt in x: pspec.append(fun.Nspec_p(lambda E: func(E,density,tau_0),\
-              lambda E: b(E,density),elt,Emax,1.,2.2))
+              lambda E: b(E,density),elt,Emax,1.,s))
     return (x,pspec)
