@@ -12,8 +12,8 @@ Function synch outputs an array of synchrotron emissivity values.
 Takes frequencies, density, magnetic field magnitude, energy density 
 and the timescale as inputs.
 
-NB: May not run since electrons.py has been updated since using
-this code.
+NB: May not run since electrons.py has been updated since checking
+the synchrotron emission
 """
 
 import numpy as np
